@@ -1,9 +1,11 @@
 import { serve } from "bun";
-import { spawn } from "node:child_process";
 
-import { port, engine_path } from "../config.json";
+import { port } from "../config.json";
 
 import index from "./index.html";
+
+import { move, setPosition } from "./modules/chessEngine.ts";   // Function imports
+import "./modules/chessEngine.ts";  // Starts the engine
 
 const server = serve({
     port: port,
@@ -33,9 +35,20 @@ const server = serve({
             });
         },
 
-        "/api/start" : {
-            GET: async (req) => {
-                return Response.json({});
+        "/api/step": {
+            POST: async (req) => {
+                try {
+                    const body = await req.json() as { fen: string; };
+                
+                    setPosition(body.fen);
+
+                    const step = await move();
+                    
+                    return Response.json({ step });
+                } catch (error) {
+                    const { message } = error as Error;
+                    return Response.json({ "message": message });
+                }
             }
         }
     },

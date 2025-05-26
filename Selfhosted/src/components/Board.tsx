@@ -1,31 +1,75 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Chessboard } from "react-chessboard";
 import { Chess } from "chess.js";
+import { Button } from "react-bootstrap";
 
 import "../styles/board.css";
 
 export default function Board() {
-    const gameRef = useRef(new Chess());
-    const [fen, setFen] = useState(gameRef.current.fen());
+    const savedFen = localStorage.getItem("fen");
+    const initialFen = savedFen || new Chess().fen();
 
-    try {
-        function makeAMove(move: any) {
-            const result = gameRef.current.move(move);
-            if (result) {
-                setFen(gameRef.current.fen()); // csak ha sikeres lépés, frissítjük az állást
+    const gameRef = useRef(new Chess(initialFen));
+    const [fen, setFen] = useState(initialFen);
+
+    useEffect(() => {
+        localStorage.setItem("fen", fen);
+    }, [fen]);
+
+    function resetGame() {
+        localStorage.removeItem("fen");
+        setFen(new Chess().fen());
+        gameRef.current.reset();
+    }
+
+    async function engineMove(fen: string) {
+        try {
+            console.log(fen);
+
+            const response = await fetch(`${window.location.origin}/api/step`, {
+                method: "post",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    "fen": fen
+                })
+            });
+
+            const body = await response.json();
+            if (!response.ok) {
+                console.log(response);
+                return;
             }
-            return result;
-        }
 
-        function makeRandomMove() {
+            console.log(body);
+
             const game = gameRef.current;
             const possibleMoves = game.moves();
-            if (game.isGameOver() || game.isDraw() || possibleMoves.length === 0) return;
-            const randomIndex = Math.floor(Math.random() * possibleMoves.length);
-            makeAMove(possibleMoves[randomIndex]);
-        }
 
-        function onDrop(sourceSquare: string, targetSquare: string) {
+            if (game.isGameOver() || game.isDraw() || possibleMoves.length === 0) return;
+
+            makeAMove({
+                from: body.step.from,
+                to: body.step.to,
+                promotion: "q",
+            });
+
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    function makeAMove(move: any) {
+        const result = gameRef.current.move(move);
+        if (result) {
+            setFen(gameRef.current.fen()); // csak ha sikeres lépés, frissítjük az állást
+        }
+        return result;
+    }
+
+    function onDrop(sourceSquare: string, targetSquare: string) {
+        try {
             const move = makeAMove({
                 from: sourceSquare,
                 to: targetSquare,
@@ -33,22 +77,30 @@ export default function Board() {
             });
 
             if (move === null) return false;
-            makeRandomMove();
-            // setTimeout(makeRandomMove, 200);
-            return true;
-        }
-        
-        return (
-            <div style={{ width: "600px" }}>
-                <Chessboard
-                    position={fen}
-                    onPieceDrop={onDrop}
-                    autoPromoteToQueen={true}
-                />
-            </div>
-        );
+            engineMove(move.after);
 
-    } catch (error) {
-        console.log(error);
+            return true;
+        } catch (error) {
+            console.log(error);
+
+            return false;
+        }
     }
+
+    return (
+        <>
+            <div style={{ display: "flex", justifyContent: "center" }}>
+                <div className="my-3" style={{ width: "90%", maxWidth: "600px" }}>
+                    <Chessboard
+                        position={fen}
+                        onPieceDrop={onDrop}
+                        autoPromoteToQueen={true}
+                    />
+                </div>
+            </div>
+            <Button size="sm" onClick={resetGame}>Reset game</Button>
+        </>
+    );
+
+
 }

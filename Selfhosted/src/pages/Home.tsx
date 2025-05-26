@@ -1,9 +1,12 @@
+import { Container } from "react-bootstrap";
+
 import Board from "../components/Board.tsx";
+
 export default () => {
     return (
-        <>
-            <h1>meow</h1>
+        <Container className="mx-auto text-center">
+            <span><span className="h1">Eleanor</span> <span>web ui</span></span>
             <Board />
-        </>
+        </Container>
     )
 }
