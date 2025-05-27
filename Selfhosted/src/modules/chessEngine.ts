@@ -26,7 +26,8 @@ try {
             const move = bestmoveLine.trim();
             resolveNextMove({
                 "from" : `${move[0]}${move[1]}`,
-                "to" : `${move[2]}${move[3]}`
+                "to" : `${move[2]}${move[3]}`,
+                "promotion" : `${move[4] ? move[4] : "q"}`
             });
         }
     });
@@ -48,7 +49,7 @@ function sendCommand(cmd: string) {
 
 export async function move() {
     try {
-        sendCommand(`go`);  // egyelőre nem adunk meg extra promptokat.
+        sendCommand(`go wtime 80000 btime 80000`);  // egyelőre nem adunk meg extra promptokat.
         const move = await getNextMove();
         return move;
     } catch (error) {
@@ -57,9 +58,19 @@ export async function move() {
     }
 }
 
+export function newGame() {
+     try {
+        sendCommand(`ucinewgame`);
+        return true;
+    } catch (error) {
+        console.log(`Failed to ucinewgame`);
+        console.log(error);
+        return false;
+    }
+}
+
 export function setPosition(fen: string) {
     try {
-        sendCommand(`ucinewgame`);
         sendCommand(`position fen ${fen}`);
         return true;
     } catch (error) {

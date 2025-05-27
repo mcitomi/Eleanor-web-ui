@@ -1,3 +1,32 @@
 #board {
     height: 50px;
 }
+
+@keyframes thinkingAnimation {
+    0% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-20px);
+    }
+
+    100% {
+        transform: translateY(0);
+    }
+}
+
+.thinking {
+    display: inline-block;
+    animation: thinkingAnimation 2s ease-in-out infinite;
+    visibility: hidden;
+}
+
+.danger {
+    background-color: rgba(241, 97, 97, 0.4);
+}
+
+body {
+    scroll-behavior: smooth;
+    transition: background-color 0.5s ease, color 0.5s ease;
+}

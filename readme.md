@@ -1,6 +1,8 @@
 # Eleanor WEB UI 
 A minimalist web ui for the Eleanor chess engine.
 
+<img src="https://imgur.com/cU8FNr4.png" alt="Cute cat playing chess" title="pic by: gyapjashabcukor" width="200px">
+
 > Currently, only a "Selfhosted" version has been made, which means that everyone has to download the web app and engine to their own home computer and then run it.
 
 ## 🚀 Installation

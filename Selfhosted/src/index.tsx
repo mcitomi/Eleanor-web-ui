@@ -4,11 +4,12 @@ import { port } from "../config.json";
 
 import index from "./index.html";
 
-import { move, setPosition } from "./modules/chessEngine.ts";   // Function imports
+import { move, setPosition, newGame } from "./modules/chessEngine.ts";   // Function imports
 import "./modules/chessEngine.ts";  // Starts the engine
 
 const server = serve({
     port: port,
+    idleTimeout: 90,
     routes: {
         // Serve index.html for all unmatched routes.
         "/*": index,
@@ -39,15 +40,27 @@ const server = serve({
             POST: async (req) => {
                 try {
                     const body = await req.json() as { fen: string; };
-                
+
                     setPosition(body.fen);
 
                     const step = await move();
-                    
+
                     return Response.json({ step });
                 } catch (error) {
                     const { message } = error as Error;
-                    return Response.json({ "message": message });
+                    return Response.json({ "message": message }, { status: 500 });
+                }
+            }
+        },
+        "/api/resetgame": {
+            POST: async (req) => {
+                try {
+                    newGame();
+
+                    return Response.json({ "message": "New game started" });
+                } catch (error) {
+                    const { message } = error as Error;
+                    return Response.json({ "message": message }, { status: 500 });
                 }
             }
         }
