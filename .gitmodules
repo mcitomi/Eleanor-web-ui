@@ -1,0 +1,3 @@
+[submodule "Eleanor"]
+    path = Eleanor
+    url = https://github.com/rektdie/Eleanor.git
