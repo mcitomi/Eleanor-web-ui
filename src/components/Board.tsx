@@ -12,11 +12,44 @@ export default function Board() {
     const gameRef = useRef(new Chess(initialFen));
     const [fen, setFen] = useState(initialFen);
 
+    const [showOverlay, setShowOverlay] = useState(true);
+    const [overlayText, setoverlayText] = useState("Eleanor :3");
+
     const [highlightSquares, setHighlightSquares] = useState({});
 
     useEffect(() => {
         localStorage.setItem("fen", fen);
     }, [fen]);
+
+    async function checkSession() {
+        try {
+            const response = await fetch(`${window.location.origin}/api/check/eid`, {
+                method: "post",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    "eid": localStorage.getItem("eid"),
+                    "uuid": localStorage.getItem("uuid")
+                })
+            });
+
+            const body = await response.json();
+            if (!response.ok) {
+                setShowOverlay(true);
+                console.log("Unable to check session");
+            } else {
+                console.log(body.message);
+                setShowOverlay(false);
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    useEffect(() => {
+        checkSession();
+    }, []);
 
     async function resetGame() {
         try {
@@ -29,21 +62,28 @@ export default function Board() {
                 method: "post",
                 headers: {
                     "Content-Type": "application/json"
-                }
+                },
+                body: JSON.stringify({
+                    "uuid": localStorage.getItem("uuid")
+                })
             });
 
+            const body = await response.json();
             if (!response.ok) {
-                console.log("Unable to reset game");
-            } else {
-                const body = await response.json();
+                setShowOverlay(true);
+                setoverlayText(body.message);
                 console.log(body.message);
+            } else {
+                localStorage.setItem("eid", body.eid);
+                console.log(body.message);
+                setShowOverlay(false);
             }
         } catch (error) {
             console.log(error);
         }
     }
 
-    function gameCheck() {
+    async function gameCheck() {
         if (gameRef.current.turn() == "w" && gameRef.current.inCheck()) {
             document.getElementsByTagName("body")[0].classList.add("danger");
         } else {
@@ -52,13 +92,32 @@ export default function Board() {
 
         if (gameRef.current.isGameOver()) {
             if (gameRef.current.isCheckmate()) {
-                console.log("Sakkmatt! A játék véget ért.");
+                setoverlayText("Checkmate!");
             } else if (gameRef.current.isStalemate()) {
-                console.log("Patt! Döntetlen.");
+                setoverlayText("Stalemate! Draw");
             } else if (gameRef.current.isDraw()) {
-                console.log("Döntetlen (pl. háromszori ismétlés, 50 lépés szabály stb.)");
+                setoverlayText("Draw");
             } else {
-                console.log("Valamilyen más okból ért véget a játék.");
+                setoverlayText("The game ended for some other reason.");
+            }
+            setShowOverlay(true);
+
+            try {
+                const response = await fetch(`${window.location.origin}/api/kill`, {
+                    method: "delete",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        "uuid": localStorage.getItem("uuid")
+                    })
+                });
+
+                if (!response.ok) {
+                    console.log(response);
+                }
+            } catch (error) {
+                console.log(error);
             }
         }
     }
@@ -91,7 +150,8 @@ export default function Board() {
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
-                    "fen": fen
+                    "fen": fen,
+                    "uuid": localStorage.getItem("uuid")
                 })
             });
 
@@ -100,6 +160,8 @@ export default function Board() {
             document.getElementById("thinking")?.style && (document.getElementById("thinking")!.style.visibility = "hidden");
 
             if (!response.ok) {
+                setShowOverlay(true);
+                setoverlayText("Your session is expired! (due 10 min inactivity)");
                 console.log(response);
                 return;
             }
@@ -152,6 +214,13 @@ export default function Board() {
 
     return (
         <>
+            {showOverlay && (
+                <div className="overlay">
+                    <Button variant="light" size="lg" onClick={resetGame}>New Game</Button>
+                    <br />
+                    <h5>{overlayText}</h5>
+                </div>
+            )}
             <div>
                 <small className="thinking text-center my-3" id="thinking">Eleanor is thinking...</small>
 
