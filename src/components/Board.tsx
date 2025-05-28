@@ -259,19 +259,21 @@ export default function Board() {
 
                 <div style={{ display: "flex", justifyContent: "center" }}>
 
-                    <div className="my-3" id="board" style={{ width: "90%", maxWidth: "600px", height: "90%" }}>
-                        <Chessboard
-                            position={fen}
-                            onPieceDrop={onDrop}
-                            onPieceDragBegin={showStepOptions}
-                            onPieceClick={showStepOptions}
-                            onPieceDragEnd={() => setHighlightSquares({})}
-                            autoPromoteToQueen={true}
-                            customSquareStyles={{ ...lastSteps, ...highlightSquares }}
-                        />
+                    <div className="board-wrapper">
+                        <div className="my-3" id="board">
+                            <Chessboard
+                                position={fen}
+                                onPieceDrop={onDrop}
+                                onPieceDragBegin={showStepOptions}
+                                onPieceClick={showStepOptions}
+                                onPieceDragEnd={() => setHighlightSquares({})}
+                                autoPromoteToQueen={true}
+                                customSquareStyles={{ ...lastSteps, ...highlightSquares }}
+                            />
+                        </div>
                     </div>
                 </div>
-                <Button size="sm" onClick={resetGame}>Reset game</Button>
+                <Button size="sm" className="my-3" onClick={resetGame}>Reset game</Button>
             </div>
         </>
     );

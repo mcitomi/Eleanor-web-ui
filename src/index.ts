@@ -16,9 +16,10 @@ const server = serve({
         "/*": index,
         "/ico": {
             GET: async (r) => {
-                return new Response(Bun.file(join(import.meta.dir, "images", "icon.png")), {
+                return new Response(await Bun.file(join(import.meta.dir, "images", "icon.png")).arrayBuffer(), {
                     headers: {
                         "Content-Type": "image/x-png",
+                        "Cache-Control": "public, max-age=86400"
                     }
                 });
             }
