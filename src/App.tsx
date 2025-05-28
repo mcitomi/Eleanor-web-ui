@@ -3,9 +3,11 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar.tsx";
 
 import Home from "./pages/Home.tsx";
+import About from "./pages/About.tsx";
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 import "./styles/darkmode.css";
+import "./styles/main.css";
 
 export default function App() {
     if (!localStorage.getItem("uuid")) {
@@ -32,6 +34,7 @@ export default function App() {
             <Navbar/>
             <Routes>
                 <Route path="/" element={<Home />} />
+                <Route path="/about" element={<About />} />
             </Routes>
         </BrowserRouter>
     )

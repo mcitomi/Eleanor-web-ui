@@ -9,6 +9,8 @@ export default function Board() {
     const savedFen = localStorage.getItem("fen");
     const initialFen = savedFen || new Chess().fen();
 
+    const controllerRef = useRef<AbortController | null>(null);
+
     const gameRef = useRef(new Chess(initialFen));
     const [fen, setFen] = useState(initialFen);
 
@@ -57,7 +59,12 @@ export default function Board() {
             localStorage.removeItem("fen");
             setFen(new Chess().fen());
             gameRef.current.reset();
-            document.getElementsByTagName("body")[0].classList.remove("danger");
+
+            controllerRef.current?.abort("Game reseted");
+
+            document.getElementById("board")!.classList.remove("danger");
+
+            document.getElementById("thinking")?.style && (document.getElementById("thinking")!.style.visibility = "hidden");
 
             setLastSteps({});
 
@@ -88,9 +95,9 @@ export default function Board() {
 
     async function gameCheck() {
         if (gameRef.current.turn() == "w" && gameRef.current.inCheck()) {
-            document.getElementsByTagName("body")[0].classList.add("danger");
+            document.getElementById("board")!.classList.add("danger");
         } else {
-            document.getElementsByTagName("body")[0].classList.remove("danger");
+            document.getElementById("board")!.classList.remove("danger");
         }
 
         if (gameRef.current.isGameOver()) {
@@ -142,14 +149,19 @@ export default function Board() {
     }
 
     async function engineMove(fen: string) {
-        try {
-            console.log(fen);
+        const timeoutId = setTimeout(() => {
+            controllerRef.current?.abort("Engine not responded");
+        }, 90000);
 
+        try {
             document.getElementById("thinking")?.style && (document.getElementById("thinking")!.style.visibility = "visible");
+
+            const controller = new AbortController();
+            controllerRef.current = controller;
 
             const response = await fetch(`${window.location.origin}/api/step`, {
                 method: "post",
-                signal: AbortSignal.timeout(90000),
+                signal: controller.signal,
                 headers: {
                     "Content-Type": "application/json"
                 },
@@ -185,6 +197,8 @@ export default function Board() {
 
         } catch (error) {
             console.log(error);
+        } finally {
+            clearTimeout(timeoutId);
         }
     }
 
@@ -197,12 +211,12 @@ export default function Board() {
             const step = move as Move;
 
             steps[step.from] = {
-                background: "radial-gradient(circle,rgb(48, 48, 48) 36%, transparent 55%)",
+                background: "radial-gradient(circle,rgb(90, 90, 90) 36%, transparent 55%)",
                 borderRadius: "40%",
             }
 
             steps[step.to] = {
-                background: "radial-gradient(circle, rgb(48, 48, 48) 36%, transparent 55%)",
+                background: "radial-gradient(circle, rgb(90, 90, 90) 36%, transparent 55%)",
                 borderRadius: "40%",
             }
 
@@ -245,7 +259,7 @@ export default function Board() {
 
                 <div style={{ display: "flex", justifyContent: "center" }}>
 
-                    <div className="my-3" style={{ width: "90%", maxWidth: "600px" }}>
+                    <div className="my-3" id="board" style={{ width: "90%", maxWidth: "600px", height: "90%" }}>
                         <Chessboard
                             position={fen}
                             onPieceDrop={onDrop}

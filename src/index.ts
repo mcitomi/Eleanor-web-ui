@@ -27,6 +27,11 @@ const server = serve({
             DELETE: async (req) => {
                 try {
                     const body = await req.json() as { uuid: string; };
+
+                    if (!body.uuid) {
+                        throw new Error("Invalid user request");
+                    }
+
                     stopEngineForUser(body.uuid);
                     return Response.json({ "message": "Engine session stopped!" });
 
@@ -42,7 +47,7 @@ const server = serve({
                     const body = await req.json() as { fen: string; uuid: string; };
 
                     if (!body.fen || !body.uuid) {
-                        throw new Error("Invalid user");
+                        throw new Error("Invalid user request");
                     }
 
                     const engine = initEngineForUser(body.uuid);
@@ -62,9 +67,16 @@ const server = serve({
             POST: async (req) => {
                 try {
                     const body = await req.json() as { uuid: string; };
+
+                    if (!body.uuid) {
+                        throw new Error("Invalid user request");
+                    }
+
+                    stopEngineForUser(body.uuid);
+                    
                     const engine = initEngineForUser(body.uuid);
                     engine.newGame();
-
+                    
                     const eid = engine.engineId;
 
                     return Response.json({ "message": "New game started", eid });
@@ -90,6 +102,10 @@ const server = serve({
             POST: async (req) => {
                 try {
                     const body = await req.json() as { eid: string; uuid: string; };
+
+                    if (!body.eid || !body.uuid) {
+                        throw new Error("Invalid user request");
+                    }
 
                     const session = engines.get(body.uuid);
 

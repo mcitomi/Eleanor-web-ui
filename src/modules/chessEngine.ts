@@ -25,31 +25,34 @@ const getTimeStamp = () => Math.floor(Date.now() / 1000);
 
 setInterval(() => {
     engines.forEach(engine => {
-        if(engine.lastUsedTimeStamp < (getTimeStamp() - 600)) {
+        if (engine.lastUsedTimeStamp < (getTimeStamp() - 600)) {
             stopEngineForUser(engine.userId);
         }
     });
 }, 30000);
 
 export function initEngineForUser(userId: string): EngineInstance {
-    
+
     if (engines.has(userId)) {
         const session = engines.get(userId)!;
-
-        console.log(session.lastUsedTimeStamp);
-
         session.lastUsedTimeStamp = getTimeStamp();
         return session;
     };
 
-    console.log(engines.size);
-    if(engines.size >= maxInstanceSize) {
+    if (engines.size >= maxInstanceSize) {
+        console.log(`Currently, the entire server capacity is occupied. Size: ${engines.size}`);
         throw new Error("Currently, the entire server capacity is occupied. Try again later...");
     }
 
     const proc = spawn(engine_path, { stdio: ['pipe', 'pipe', 'pipe'] });
 
     let resolveMove: ((move: Move) => void) | null = null;
+
+    const sendCommand = (cmd: string) => {
+        proc.stdin.write(`${cmd}\n`);
+    };
+
+    const getNextMove = () => new Promise<Move>((resolve) => { resolveMove = resolve; });
 
     proc.stdout.on("data", (data: Buffer) => {
         const text = data.toString();
@@ -58,14 +61,8 @@ export function initEngineForUser(userId: string): EngineInstance {
             const [, from, to, promo] = bestMoveMatch;
             resolveMove({ from, to, promotion: promo || "q" });
             resolveMove = null;
-        }
+        } 
     });
-
-    const sendCommand = (cmd: string) => {
-        proc.stdin.write(`${cmd}\n`);
-    };
-
-    const getNextMove = () => new Promise<Move>((resolve) => { resolveMove = resolve; });
 
     const engine: EngineInstance = {
         proc,
@@ -83,7 +80,7 @@ export function initEngineForUser(userId: string): EngineInstance {
             sendCommand("ucinewgame");
         },
         userId: userId,
-        engineId: Bun.randomUUIDv7("base64")
+        engineId: Bun.randomUUIDv7("base64"),
     };
 
     engines.set(userId, engine);
