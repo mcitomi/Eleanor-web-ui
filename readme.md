@@ -1,6 +1,5 @@
 # Eleanor WEB UI 
-A minimalist WEB application for the Eleanor chess engine.
-Manages game engine sessions and users in separate child processes.
+A lightweight web interface for the Eleanor chess engine, built with Bun, React, and TypeScript. Enables real-time play and API cont
 
 <img src="https://imgur.com/cU8FNr4.png" alt="Cute cat playing chess" title="Cute cat playing chess" width="200px">
 
