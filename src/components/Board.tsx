@@ -138,9 +138,6 @@ export default function Board() {
             };
         });
 
-        console.log(moves);
-
-
         setHighlightSquares(highlights);
     }
 

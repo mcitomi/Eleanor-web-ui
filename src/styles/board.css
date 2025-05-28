@@ -24,6 +24,21 @@
 
 .danger {
     background-color: rgba(241, 97, 97, 0.4);
+    animation: pulseRed 1.5s infinite ease-in-out;
+}
+
+@keyframes pulseRed {
+    0% {
+        background-color: rgb(240, 106, 106);
+    }
+
+    50% {
+        background-color: rgb(245, 77, 77);
+    }
+
+    100% {
+        background-color: rgb(240, 106, 106);
+    }
 }
 
 body {
