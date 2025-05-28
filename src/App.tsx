@@ -1,15 +1,13 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { useState } from "react";
 
 import Navbar from "./components/Navbar.tsx";
 
 import Home from "./pages/Home.tsx";
 
 import 'bootstrap/dist/css/bootstrap.min.css';
+import "./styles/darkmode.css";
 
 export default function App() {
-    const [logged, setLogged] = useState(false);
-
     if (!localStorage.getItem("uuid")) {
         async function fetchNewUuid() {
             try {
@@ -31,7 +29,7 @@ export default function App() {
     }
     return (
         <BrowserRouter>
-            <Navbar logged={logged} setLogged={setLogged} />
+            <Navbar/>
             <Routes>
                 <Route path="/" element={<Home />} />
             </Routes>

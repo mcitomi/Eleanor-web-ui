@@ -1,4 +1,5 @@
 import { serve } from "bun";
+import { join } from "node:path";
 
 import { port } from "../config.json";
 
@@ -13,7 +14,15 @@ const server = serve({
     routes: {
         // Serve index.html for all unmatched routes.
         "/*": index,
-
+        "/ico": {
+            GET: async (r) => {
+                return new Response(Bun.file(join(import.meta.dir, "images", "icon.png")), {
+                    headers: {
+                        "Content-Type": "image/x-png",
+                    }
+                });
+            }
+        },
         "/api/kill": {
             DELETE: async (req) => {
                 try {
@@ -32,7 +41,7 @@ const server = serve({
                 try {
                     const body = await req.json() as { fen: string; uuid: string; };
 
-                    if(!body.fen || !body.uuid) {
+                    if (!body.fen || !body.uuid) {
                         throw new Error("Invalid user");
                     }
 

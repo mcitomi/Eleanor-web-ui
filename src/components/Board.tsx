@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from "react";
 import { Chessboard } from "react-chessboard";
-import { Chess, type Square } from "chess.js";
+import { Chess, Move, type Square } from "chess.js";
 import { Button } from "react-bootstrap";
 
 import "../styles/board.css";
@@ -13,9 +13,10 @@ export default function Board() {
     const [fen, setFen] = useState(initialFen);
 
     const [showOverlay, setShowOverlay] = useState(true);
-    const [overlayText, setoverlayText] = useState("Eleanor :3");
+    const [overlayText, setoverlayText] = useState("Eleanor is a chess engine written in C++");
 
     const [highlightSquares, setHighlightSquares] = useState({});
+    const [lastSteps, setLastSteps] = useState({});
 
     useEffect(() => {
         localStorage.setItem("fen", fen);
@@ -57,6 +58,8 @@ export default function Board() {
             setFen(new Chess().fen());
             gameRef.current.reset();
             document.getElementsByTagName("body")[0].classList.remove("danger");
+
+            setLastSteps({});
 
             const response = await fetch(`${window.location.origin}/api/resetgame`, {
                 method: "post",
@@ -131,8 +134,12 @@ export default function Board() {
             highlights[move.to] = {
                 background: "radial-gradient(circle, #fffa8b 36%, transparent 40%)",
                 borderRadius: "50%",
+                zIndex: "4"
             };
         });
+
+        console.log(moves);
+
 
         setHighlightSquares(highlights);
     }
@@ -187,7 +194,22 @@ export default function Board() {
     function makeAMove(move: any) {
         const result = gameRef.current.move(move);
         if (result) {
-            setFen(gameRef.current.fen()); // csak ha sikeres lépés, frissítjük az állást
+            setFen(gameRef.current.fen());
+
+            const steps: Record<string, React.CSSProperties> = {};
+            const step = move as Move;
+
+            steps[step.from] = {
+                background: "radial-gradient(circle,rgb(48, 48, 48) 36%, transparent 55%)",
+                borderRadius: "40%",
+            }
+
+            steps[step.to] = {
+                background: "radial-gradient(circle, rgb(48, 48, 48) 36%, transparent 55%)",
+                borderRadius: "40%",
+            }
+
+            setLastSteps(steps);
             gameCheck();
         }
         return result;
@@ -231,9 +253,10 @@ export default function Board() {
                             position={fen}
                             onPieceDrop={onDrop}
                             onPieceDragBegin={showStepOptions}
+                            onPieceClick={showStepOptions}
                             onPieceDragEnd={() => setHighlightSquares({})}
                             autoPromoteToQueen={true}
-                            customSquareStyles={highlightSquares}
+                            customSquareStyles={{ ...lastSteps, ...highlightSquares }}
                         />
                     </div>
                 </div>
