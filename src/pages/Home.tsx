@@ -5,7 +5,7 @@ import Board from "../components/Board.tsx";
 export default () => {
     return (
         <Container className="mx-auto text-center">
-            <span><span className="h1">Eleanor</span></span>
+            <h1 style={{marginTop: "10px"}}>Eleanor</h1>
             <Board />
         </Container>
     )

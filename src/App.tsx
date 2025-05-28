@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { useState, useEffect } from "react";
 
 import Navbar from "./components/Navbar.tsx";
 
@@ -29,12 +30,31 @@ export default function App() {
         }
         fetchNewUuid();
     }
+
+    const [darkMode, setDarkMode] = useState(() => { return localStorage.getItem("darkmode") === "true" });
+
+    function toggleDarkMode() {
+        setDarkMode(!darkMode);
+
+        localStorage.setItem("darkmode", `${!darkMode}`);
+    }
+
+    useEffect(() => {
+        if (darkMode) {
+            document.body.classList.add("dark-mode");
+            document.body.classList.remove("white-mode");
+        } else {
+            document.body.classList.add("white-mode");
+            document.body.classList.remove("dark-mode");
+        }
+    }, [darkMode]);
+
     return (
         <BrowserRouter>
-            <Navbar/>
+            <Navbar darkMode={darkMode} toggleDarkMode={toggleDarkMode}/>
             <Routes>
                 <Route path="/" element={<Home />} />
-                <Route path="/about" element={<About />} />
+                <Route path="/about" element={<About darkMode={darkMode} />} />
             </Routes>
         </BrowserRouter>
     )

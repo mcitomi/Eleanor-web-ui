@@ -273,7 +273,7 @@ export default function Board() {
                         </div>
                     </div>
                 </div>
-                <Button size="sm" className="my-3" onClick={resetGame}>Reset game</Button>
+                <Button size="sm" variant="outline-danger" className="my-3" onClick={resetGame}>Reset game</Button>
             </div>
         </>
     );
