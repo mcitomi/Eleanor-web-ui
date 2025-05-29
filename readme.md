@@ -32,8 +32,13 @@ A lightweight web interface for the Eleanor chess engine, built with Bun, React,
 - Sounds.
 - Log informations screen.
 - Time control.
-- When the user leaves the page and returns, traces of the last step are lost.
 - Player number / server load indicator.
 - Benchmarks tab etc.
 - Match history / replays.
-- Better UX / UI.
+- Better UX / UI. ~ "Your turn" etc.
+
+#### upcoming bug fixes:
+- Check which color is next when calling the API so that the engine doesn't accidentally move with the wrong color.
+- The pieces can be moved by clicking, without necessarily having to drag.
+- When the user leaves the page and returns, traces of the last step are lost.
+- Make the chessboard bigger in phone view.
