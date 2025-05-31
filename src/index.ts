@@ -25,7 +25,7 @@ const server = serve({
             }
         },
         "/api/kill": {
-            DELETE: async (req) => {
+            DELETE: async (req: Bun.BunRequest<"/api/kill">) => {
                 try {
                     const body = await req.json() as { uuid: string; };
 

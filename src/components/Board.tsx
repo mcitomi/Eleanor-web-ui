@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from "react";
 import { Chessboard } from "react-chessboard";
-import { Chess, Move, Piece, type Square } from "chess.js";
+import { Chess, Move, type Square } from "chess.js";
 import { Button } from "react-bootstrap";
 
 import "../styles/board.css";
@@ -55,11 +55,24 @@ export default function Board() {
         checkSession();
     }, []);
 
-    async function resetGame() {
+    useEffect(() => {
+        if (gameRef.current.turn() === "b") {
+            engineMove(gameRef.current.fen());
+        }
+    }, [fen]);
+
+    async function resetGame(engineStarts: boolean) {
         try {
             localStorage.removeItem("fen");
-            setFen(new Chess().fen());
-            gameRef.current.reset();
+
+            let newGameFen = new Chess().fen();
+
+            if(engineStarts) {
+                newGameFen = newGameFen.replace("w", "b");
+            }
+
+            gameRef.current = new Chess(newGameFen);
+            setFen(newGameFen);
 
             controllerRef.current?.abort("Game reseted");
 
@@ -249,7 +262,7 @@ export default function Board() {
             });
 
             if (move === null) return false;
-            engineMove(move.after);
+            // engineMove(move.after);
 
             return true;
         } catch (error) {
@@ -262,7 +275,7 @@ export default function Board() {
     function stepByClick(square: string) {
         const moves = gameRef.current.moves({ square: selected as Square, verbose: true });
 
-        if(!moves.some(x => x.to == square)) {
+        if (!moves.some(x => x.to == square)) {
             return;
         }
 
@@ -278,7 +291,7 @@ export default function Board() {
             setSelected("");
 
             if (move === null) return false;
-            engineMove(move.after);
+            // engineMove(move.after);
         }
     }
 
@@ -286,7 +299,8 @@ export default function Board() {
         <>
             {showOverlay && (
                 <div className="overlay">
-                    <Button variant="light" size="lg" onClick={resetGame}>New Game</Button>
+                    <Button variant="light" size="lg" className="my-3" onClick={() => resetGame(false)}>Start Game</Button>
+                    <Button variant="outline-light" size="sm" onClick={() => resetGame(true)}><b>Start Game</b> and Eleanor starts the round</Button>
                     <br />
                     <h5>{overlayText}</h5>
                 </div>
@@ -311,7 +325,8 @@ export default function Board() {
                         </div>
                     </div>
                 </div>
-                <Button size="sm" variant="outline-danger" className="my-3" onClick={resetGame}>Reset game</Button>
+                <Button size="sm" variant="danger" className="m-3" onClick={() => resetGame(false)}>Reset game</Button>
+                <Button size="sm" variant="outline-danger" className="m-3" onClick={() => resetGame(true)}><b>Game resets</b> and Eleanor starts the round</Button>
             </div>
         </>
     );

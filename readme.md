@@ -1,12 +1,16 @@
 # Eleanor WEB UI 
 A lightweight web interface for the Eleanor chess engine, built with Bun, React, and TypeScript.
 
+<img src="https://imgur.com/cU8FNr4.png" alt="Cute cat playing chess" title="Cute cat playing chess" width="200px">
+
 ### ♟️ Features
 - It manages multiple concurrent sessions by spawning isolated UCI engine child processes per user.
 
 - Each session tracks activity, handles custom FEN positions, and auto-terminates after inactivity, providing efficient and scalable real-time chess play via a simple REST API.
 
-<img src="https://imgur.com/cU8FNr4.png" alt="Cute cat playing chess" title="Cute cat playing chess" width="200px">
+#### Updates
+
+- "Eleanor starts the round" method added. ~ v.0.2.6.
 
 ## 🚀 Installation
 - Download and setup the [Eleanor engine](https://github.com/rektdie/Eleanor).
