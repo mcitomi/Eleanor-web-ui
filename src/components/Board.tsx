@@ -68,6 +68,7 @@ export default function Board() {
             document.getElementById("thinking")?.style && (document.getElementById("thinking")!.style.visibility = "hidden");
 
             setLastSteps({});
+            setSelected("");
 
             const response = await fetch(`${window.location.origin}/api/resetgame`, {
                 method: "post",
