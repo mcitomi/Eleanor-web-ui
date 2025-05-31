@@ -62,8 +62,8 @@ body {
 }
 
 .board-wrapper {
-    width: 80vmin;
-    height: 80vmin;
+    width: 65vmin;
+    height: 65vmin;
     max-width: 100vw;
     max-height: 100vh;
     aspect-ratio: 1 / 1;
@@ -73,11 +73,8 @@ body {
 }
 
 #board {
-    /* height: 50px; */
-    width: 80vmin;
-    height: 80vmin;
-    max-width: 100vw;
-    max-height: 100vh;
+    width: 65vmin;
+    height: 65vmin;
     aspect-ratio: 1 / 1;
     margin: auto;
 }

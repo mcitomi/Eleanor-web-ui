@@ -33,7 +33,7 @@ A lightweight web interface for the Eleanor chess engine, built with Bun, React,
 ```
 
 ## 🗒️ Plans
-- Sounds.
+- ✅ Sounds.
 - Log informations screen.
 - Time control.
 - Player number / server load indicator.

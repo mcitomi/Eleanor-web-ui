@@ -24,6 +24,51 @@ const server = serve({
                 });
             }
         },
+        "/audio/:id": {
+            GET: async (r: Bun.BunRequest<"/audio/:id">) => {
+                try {
+                    const type = r.params.id;
+
+                    let file: Bun.BunFile | undefined;
+
+                    switch (type) {
+                        case "normal":
+                            file = Bun.file(join(import.meta.dir, "audio", "normal.mp3"));
+                            break;
+
+                        case "capture":
+                            file = Bun.file(join(import.meta.dir, "audio", "capture.mp3"));
+                            break;
+
+                        case "notify":
+                            file = Bun.file(join(import.meta.dir, "audio", "notify.mp3"));
+                            break;
+
+                        case "illegal":
+                            file = Bun.file(join(import.meta.dir, "audio", "illegal.mp3"));
+                            break;
+
+                        default:
+                            break;
+                    }
+
+                    if (file) {
+                        return new Response(await file.arrayBuffer(), {
+                            headers: {
+                                "Content-Type": "audio/mpeg",
+                                "Cache-Control": "public, max-age=86400"
+                            }
+                        });
+                    } else {
+                        return Response.json({ "message": "Audio not found" }, { status: 404 });
+                    }
+
+                } catch (error) {
+                    const { message } = error as Error;
+                    return Response.json({ "message": message }, { status: 500 });
+                }
+            }
+        },
         "/api/kill": {
             DELETE: async (req: Bun.BunRequest<"/api/kill">) => {
                 try {
@@ -74,10 +119,10 @@ const server = serve({
                     }
 
                     stopEngineForUser(body.uuid);
-                    
+
                     const engine = initEngineForUser(body.uuid);
                     engine.newGame();
-                    
+
                     const eid = engine.engineId;
 
                     return Response.json({ "message": "New game started", eid });

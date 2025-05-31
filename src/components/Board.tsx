@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect } from "react";
 import { Chessboard } from "react-chessboard";
+import { BoardOrientation } from "react-chessboard/dist/chessboard/types";
 import { Chess, Move, type Square } from "chess.js";
 import { Button } from "react-bootstrap";
 
@@ -21,9 +22,26 @@ export default function Board() {
     const [lastSteps, setLastSteps] = useState({});
     const [selected, setSelected] = useState("");
 
+    const [orientation, setOrientation] = useState<BoardOrientation>("white");
+
+    const moveSoundRef = useRef(new Audio("/audio/normal"));
+    const capSoundRef = useRef(new Audio("/audio/capture"));
+    const notifySoundRef = useRef(new Audio("/audio/notify"));
+    const illegalSoundRef = useRef(new Audio("/audio/illegal"));
+
     useEffect(() => {
         localStorage.setItem("fen", fen);
     }, [fen]);
+
+    function playNotifySound() {
+        function play() {
+            notifySoundRef.current.currentTime = 0;
+            notifySoundRef.current.play().catch(() => { });
+        }
+
+        play();
+        setTimeout(play, 600);
+    }
 
     async function checkSession() {
         try {
@@ -43,7 +61,6 @@ export default function Board() {
                 setShowOverlay(true);
                 console.log("Unable to check session");
             } else {
-                console.log(body.message);
                 setShowOverlay(false);
             }
         } catch (error) {
@@ -56,20 +73,16 @@ export default function Board() {
     }, []);
 
     useEffect(() => {
-        if (gameRef.current.turn() === "b") {
+        if (gameRef.current.turn() === (orientation == "white" ? "b" : "w")) {
             engineMove(gameRef.current.fen());
         }
     }, [fen]);
 
-    async function resetGame(engineStarts: boolean) {
+    async function resetGame() {
         try {
             localStorage.removeItem("fen");
 
             let newGameFen = new Chess().fen();
-
-            if(engineStarts) {
-                newGameFen = newGameFen.replace("w", "b");
-            }
 
             gameRef.current = new Chess(newGameFen);
             setFen(newGameFen);
@@ -110,8 +123,9 @@ export default function Board() {
     }
 
     async function gameCheck() {
-        if (gameRef.current.turn() == "w" && gameRef.current.inCheck()) {
+        if (gameRef.current.turn() == orientation[0] && gameRef.current.inCheck()) {
             document.getElementById("board")!.classList.add("danger");
+            playNotifySound()
         } else {
             document.getElementById("board")!.classList.remove("danger");
         }
@@ -149,7 +163,7 @@ export default function Board() {
     }
 
     function showStepOptions(piece: string, square: Square) {
-        if (!piece.startsWith("w")) {
+        if (!piece.startsWith(orientation[0])) {
             return false;
         }
 
@@ -175,10 +189,6 @@ export default function Board() {
 
         try {
             document.getElementById("thinking")?.style && (document.getElementById("thinking")!.style.visibility = "visible");
-
-            if (gameRef.current.turn() != "b") {
-                throw new Error("Board logic error");
-            }
 
             const controller = new AbortController();
             controllerRef.current = controller;
@@ -206,8 +216,6 @@ export default function Board() {
                 return;
             }
 
-            console.log(body);
-
             const game = gameRef.current;
             const possibleMoves = game.moves();
 
@@ -231,6 +239,14 @@ export default function Board() {
         if (result) {
             setFen(gameRef.current.fen());
 
+            if (result.captured) {
+                capSoundRef.current.currentTime = 0;
+                capSoundRef.current.play().catch(() => { });
+            } else {
+                moveSoundRef.current.currentTime = 0;
+                moveSoundRef.current.play().catch(() => { });
+            }
+
             const steps: Record<string, React.CSSProperties> = {};
             const step = move as Move;
 
@@ -252,7 +268,7 @@ export default function Board() {
 
     function onDrop(sourceSquare: string, targetSquare: string, piece: string) {
         try {
-            if (!piece.startsWith("w")) {
+            if (!piece.startsWith(orientation[0])) {
                 return false;
             }
 
@@ -263,36 +279,44 @@ export default function Board() {
             });
 
             if (move === null) return false;
-            // engineMove(move.after);
-
             return true;
-        } catch (error) {
-            console.log(error);
 
+        } catch (error) {
+            illegalSoundRef.current.currentTime = 0;
+            illegalSoundRef.current.play().catch(() => { });
+            console.log(error);
             return false;
         }
     }
 
-    function stepByClick(square: string) {
-        const moves = gameRef.current.moves({ square: selected as Square, verbose: true });
+    function stepByClick(square: string, piece: string | undefined) {
+        try {
+            const moves = gameRef.current.moves({ square: selected as Square, verbose: true });
 
-        if (!moves.some(x => x.to == square)) {
-            return;
-        }
+            if (!moves.some(x => x.to == square)) {
+                throw new Error("Invalid step");
+            }
 
-        if (selected && selected != square) {
-            setHighlightSquares({});
+            if (selected && selected != square) {
+                setHighlightSquares({});
 
-            const move = makeAMove({
-                from: selected,
-                to: square,
-                promotion: "q", // promotion logika kell majd
-            });
+                const move = makeAMove({
+                    from: selected,
+                    to: square,
+                    promotion: "q", // promotion logika kell majd
+                });
 
-            setSelected("");
+                setSelected("");
 
-            if (move === null) return false;
-            // engineMove(move.after);
+                if (move === null) return false;
+            }
+        } catch (error) {
+            console.log(error);
+            
+            if (selected && !piece || piece && piece[0] !== orientation[0]) {
+                illegalSoundRef.current.currentTime = 0;
+                illegalSoundRef.current.play().catch(() => { });
+            }
         }
     }
 
@@ -300,8 +324,9 @@ export default function Board() {
         <>
             {showOverlay && (
                 <div className="overlay">
-                    <Button variant="light" size="lg" className="my-3" onClick={() => resetGame(false)}>Start Game</Button>
-                    <Button variant="outline-light" size="sm" onClick={() => resetGame(true)}><b>Start Game</b> and Eleanor starts the round</Button>
+                    <Button variant="light" size="lg" className="my-3" onClick={() => { resetGame(), setOrientation("white") }}>Join on White site</Button>
+                    <h1> - - New Game - -</h1>
+                    <Button variant="dark" size="lg" className="my-3" onClick={() => { resetGame(), setOrientation("black") }}>Join on Black site</Button>
                     <br />
                     <h5>{overlayText}</h5>
                 </div>
@@ -322,12 +347,13 @@ export default function Board() {
                                 onPieceDragEnd={() => setHighlightSquares({})}
                                 autoPromoteToQueen={true}
                                 customSquareStyles={{ ...lastSteps, ...highlightSquares }}
+                                boardOrientation={orientation}
                             />
                         </div>
                     </div>
                 </div>
-                <Button size="sm" variant="danger" className="m-3" onClick={() => resetGame(false)}>Reset game</Button>
-                <Button size="sm" variant="outline-danger" className="m-3" onClick={() => resetGame(true)}><b>Game resets</b> and Eleanor starts the round</Button>
+                <Button size="sm" variant="light" className="m-3" onClick={() => { resetGame(), setOrientation("white") }}>Reset Game<br/><small>Play on white side</small></Button>
+                <Button size="sm" variant="dark" className="m-3" onClick={() => { resetGame(), setOrientation("black") }}>Reset Game<br/><small>Play on black side</small></Button>
             </div>
         </>
     );
