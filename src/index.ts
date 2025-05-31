@@ -18,7 +18,7 @@ const server = serve({
             GET: async (r) => {
                 return new Response(await Bun.file(join(import.meta.dir, "images", "icon.png")).arrayBuffer(), {
                     headers: {
-                        "Content-Type": "image/x-png",
+                        "Content-Type": "image/png",
                         "Cache-Control": "public, max-age=86400"
                     }
                 });
