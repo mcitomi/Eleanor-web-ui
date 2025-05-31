@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from "react";
 import { Chessboard } from "react-chessboard";
-import { Chess, Move, type Square } from "chess.js";
+import { Chess, Move, Piece, type Square } from "chess.js";
 import { Button } from "react-bootstrap";
 
 import "../styles/board.css";
@@ -19,6 +19,7 @@ export default function Board() {
 
     const [highlightSquares, setHighlightSquares] = useState({});
     const [lastSteps, setLastSteps] = useState({});
+    const [selected, setSelected] = useState("");
 
     useEffect(() => {
         localStorage.setItem("fen", fen);
@@ -132,7 +133,11 @@ export default function Board() {
         }
     }
 
-    function showStepOptions(_: any, square: Square) {
+    function showStepOptions(piece: string, square: Square) {
+        if (!piece.startsWith("w")) {
+            return false;
+        }
+
         const moves = gameRef.current.moves({ square: square, verbose: true });
 
         const highlights: Record<string, React.CSSProperties> = {};
@@ -155,6 +160,10 @@ export default function Board() {
 
         try {
             document.getElementById("thinking")?.style && (document.getElementById("thinking")!.style.visibility = "visible");
+
+            if (gameRef.current.turn() != "b") {
+                throw new Error("Board logic error");
+            }
 
             const controller = new AbortController();
             controllerRef.current = controller;
@@ -226,8 +235,12 @@ export default function Board() {
         return result;
     }
 
-    function onDrop(sourceSquare: string, targetSquare: string) {
+    function onDrop(sourceSquare: string, targetSquare: string, piece: string) {
         try {
+            if (!piece.startsWith("w")) {
+                return false;
+            }
+
             const move = makeAMove({
                 from: sourceSquare,
                 to: targetSquare,
@@ -242,6 +255,29 @@ export default function Board() {
             console.log(error);
 
             return false;
+        }
+    }
+
+    function stepByClick(square: string) {
+        const moves = gameRef.current.moves({ square: selected as Square, verbose: true });
+
+        if(!moves.some(x => x.to == square)) {
+            return;
+        }
+
+        if (selected && selected != square) {
+            setHighlightSquares({});
+
+            const move = makeAMove({
+                from: selected,
+                to: square,
+                promotion: "q", // promotion logika kell majd
+            });
+
+            setSelected("");
+
+            if (move === null) return false;
+            engineMove(move.after);
         }
     }
 
@@ -263,9 +299,10 @@ export default function Board() {
                         <div className="my-3" id="board">
                             <Chessboard
                                 position={fen}
+                                onSquareClick={stepByClick}
                                 onPieceDrop={onDrop}
                                 onPieceDragBegin={showStepOptions}
-                                onPieceClick={showStepOptions}
+                                onPieceClick={(p, s) => { showStepOptions(p, s), setSelected(s) }}
                                 onPieceDragEnd={() => setHighlightSquares({})}
                                 autoPromoteToQueen={true}
                                 customSquareStyles={{ ...lastSteps, ...highlightSquares }}
