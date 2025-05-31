@@ -81,6 +81,7 @@ export default function Board() {
             document.getElementById("thinking")?.style && (document.getElementById("thinking")!.style.visibility = "hidden");
 
             setLastSteps({});
+            setHighlightSquares({});
             setSelected("");
 
             const response = await fetch(`${window.location.origin}/api/resetgame`, {
