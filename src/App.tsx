@@ -5,6 +5,7 @@ import Navbar from "./components/Navbar.tsx";
 
 import Home from "./pages/Home.tsx";
 import About from "./pages/About.tsx";
+import NotFound from "./pages/NotFound.tsx";
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 import "./styles/darkmode.css";
@@ -55,6 +56,7 @@ export default function App() {
             <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/about" element={<About darkMode={darkMode} />} />
+                <Route path="/404" element={<NotFound />} />
             </Routes>
         </BrowserRouter>
     )

@@ -17,7 +17,7 @@ export default function OffCanvasExample({ resetCount }: { resetCount: number; }
     }, [messages]);
 
     useEffect(() => {
-        const socket = new WebSocket('wss://eleanor.altersrac.hu/console'); // Cloudflare only works with / full strict ssl. 
+        const socket = new WebSocket(window.location.protocol == 'https:' ? 'wss://eleanor.altersrac.hu/console' : `${window.origin}/console`); // Cloudflare only works with / full strict ssl. 
 
         socket.onopen = () => {
             const uuid = localStorage.getItem("uuid");

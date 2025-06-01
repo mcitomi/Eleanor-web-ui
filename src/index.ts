@@ -14,6 +14,9 @@ const server = serve({
     routes: {
         // Serve index.html for all unmatched routes.
         "/": index,
+        "/about": index,
+        "/404": index,
+
         "/ico": {
             GET: async (r) => {
                 return new Response(await Bun.file(join(import.meta.dir, "images", "icon.png")).arrayBuffer(), {
@@ -175,23 +178,28 @@ const server = serve({
                 return;
             }
         }
-        return Response.json({ "message": "page not found" }, { status: 404 });
+        return Response.redirect("/404", 302);
     },
 
     websocket: {
         async message(ws, message) {
-            const body = JSON.parse(message.toString()) as { uuid: string | undefined; type: string; };
+            try {
+                const body = JSON.parse(message.toString()) as { uuid: string | undefined; type: string; };
 
-            if (body.uuid && body.type == "console") {
-                const engine = initEngineForUser(body.uuid);
+                if (body.uuid && body.type == "console") {
+                    const engine = initEngineForUser(body.uuid);
 
-                engine.ws = ws;
+                    engine.ws = ws;
 
-                broadcastMetaInfos(engine);
+                    broadcastMetaInfos(engine);
+                }
+            } catch (error) {
+                const { message } = error as Error;
+                ws.send(JSON.stringify({ "type": "console", "text": message }))
             }
         },
         open(ws) {
-            ws.send(JSON.stringify({"type" : "console", "text" : "WS connection opened"}));
+            ws.send(JSON.stringify({ "type": "console", "text": "WS connection opened" }));
         },
     },
 
