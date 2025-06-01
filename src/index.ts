@@ -5,7 +5,7 @@ import { port } from "../config.json";
 
 import index from "./index.html";
 
-import { initEngineForUser, engines, stopEngineForUser } from "./modules/chessEngine.ts";   // Function imports
+import { initEngineForUser, engines, stopEngineForUser, broadcastMetaInfos } from "./modules/chessEngine.ts";   // Function imports
 import "./modules/chessEngine.ts";  // Starts the engine
 
 const server = serve({
@@ -13,7 +13,7 @@ const server = serve({
     idleTimeout: 90,
     routes: {
         // Serve index.html for all unmatched routes.
-        "/*": index,
+        "/": index,
         "/ico": {
             GET: async (r) => {
                 return new Response(await Bun.file(join(import.meta.dir, "images", "icon.png")).arrayBuffer(), {
@@ -88,7 +88,7 @@ const server = serve({
             }
         },
         "/api/step": {
-            POST: async (req) => {
+            POST: async (req: Bun.BunRequest<"/api/step">) => {
                 try {
                     const body = await req.json() as { fen: string; uuid: string; };
 
@@ -110,7 +110,7 @@ const server = serve({
             }
         },
         "/api/resetgame": {
-            POST: async (req) => {
+            POST: async (req: Bun.BunRequest<"/api/resetgame">) => {
                 try {
                     const body = await req.json() as { uuid: string; };
 
@@ -133,7 +133,7 @@ const server = serve({
             }
         },
         "/api/getrandomuuid": {
-            GET: async (req) => {
+            GET: async (req: Bun.BunRequest<"/api/getrandomuuid">) => {
                 try {
                     const uuid = Bun.randomUUIDv7("base64");
 
@@ -145,7 +145,7 @@ const server = serve({
             }
         },
         "/api/check/eid": {
-            POST: async (req) => {
+            POST: async (req: Bun.BunRequest<"/api/check/eid">) => {
                 try {
                     const body = await req.json() as { eid: string; uuid: string; };
 
@@ -166,6 +166,30 @@ const server = serve({
                 }
             }
         }
+    },
+
+    fetch(request, server) {
+        if (new URL(request.url).pathname == "/console") {
+            const success = server.upgrade(request);
+            if (success) {
+                return undefined;
+            }
+        }
+        return Response.json({ "message": "page not found" }, { status: 404 });
+    },
+
+    websocket: {
+        async message(ws, message) {
+            const body = JSON.parse(message.toString()) as { uuid: string | undefined; type: string; };
+
+            if (body.uuid && body.type == "console") {
+                const engine = initEngineForUser(body.uuid);
+
+                engine.ws = ws;
+
+                broadcastMetaInfos(engine);
+            }
+        },
     },
 
     development: process.env.NODE_ENV !== "production" && {

@@ -1,0 +1,21 @@
+.console {
+    background-color: black;
+    color: green;
+    overflow-y: auto;
+}
+
+.console::-webkit-scrollbar,
+#cmd::-webkit-scrollbar {
+    display: none;
+}
+
+#cmd {
+    overflow-y: auto;
+    max-height: 900px;
+    scroll-behavior: smooth;
+}
+
+.c-head {
+    background-color: #333;
+    color: white;
+}

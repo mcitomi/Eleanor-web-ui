@@ -34,7 +34,7 @@ A lightweight web interface for the Eleanor chess engine, built with Bun, React,
 
 ## 🗒️ Plans
 - ✅ Sounds.
-- Log informations screen.
+- 🟨 Log informations screen. ~ testing
 - Time control.
 - Player number / server load indicator.
 - Benchmarks tab etc.
@@ -45,8 +45,9 @@ A lightweight web interface for the Eleanor chess engine, built with Bun, React,
 - When the user leaves the page and returns, traces of the last step are lost.
 - Make the chessboard bigger in phone view.
 - "ha kijelölsz egy bábut, sárgával jelezve van, hogy hova tud lépni. Ez nagyszerű, de ha a motor gondolkodása közben jelölsz ki figurát, majd idők közben lép egyet a bot, akkor továbbra is fogod a bábut, de nem jelenik meg a sárga jelölés, hogy hova tudsz lépni"
+- ~ the engine sometimes wants to move where it is standing. 
 
-### 🤖 Version numbering system:
+## 🤖 Version numbering system:
 > MAJOR.MINOR.FEATURE.FIX
 
 - **MAJOR**: An important, far-reaching change or innovation.

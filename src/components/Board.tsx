@@ -4,6 +4,8 @@ import { BoardOrientation } from "react-chessboard/dist/chessboard/types";
 import { Chess, Move, type Square } from "chess.js";
 import { Button } from "react-bootstrap";
 
+import Offcanvas from "./Offcanvas.tsx";
+
 import "../styles/board.css";
 
 export default function Board() {
@@ -14,6 +16,8 @@ export default function Board() {
 
     const gameRef = useRef(new Chess(initialFen));
     const [fen, setFen] = useState(initialFen);
+
+    const [resetCount, setResetCount] = useState(0);
 
     const [showOverlay, setShowOverlay] = useState(true);
     const [overlayText, setoverlayText] = useState("Eleanor is a chess engine written in C++");
@@ -28,10 +32,6 @@ export default function Board() {
     const capSoundRef = useRef(new Audio("/audio/capture"));
     const notifySoundRef = useRef(new Audio("/audio/notify"));
     const illegalSoundRef = useRef(new Audio("/audio/illegal"));
-
-    useEffect(() => {
-        localStorage.setItem("fen", fen);
-    }, [fen]);
 
     function playNotifySound() {
         function play() {
@@ -76,6 +76,8 @@ export default function Board() {
         if (gameRef.current.turn() === (orientation == "white" ? "b" : "w")) {
             engineMove(gameRef.current.fen());
         }
+
+        localStorage.setItem("fen", fen);
     }, [fen]);
 
     async function resetGame() {
@@ -115,6 +117,8 @@ export default function Board() {
                 setShowOverlay(false);
                 setFen(newGameFen);
             }
+
+            setResetCount(prev => prev + 1);
         } catch (error) {
             console.log(error);
         }
@@ -351,6 +355,7 @@ export default function Board() {
                     </div>
                 </div>
                 <Button size="sm" variant="light" className="m-3" onClick={() => { resetGame(), setOrientation("white") }}>Reset Game<br /><small>Play on white side</small></Button>
+                <Offcanvas resetCount={resetCount}/>
                 <Button size="sm" variant="dark" className="m-3" onClick={() => { resetGame(), setOrientation("black") }}>Reset Game<br /><small>Play on black side</small></Button>
             </div>
         </>

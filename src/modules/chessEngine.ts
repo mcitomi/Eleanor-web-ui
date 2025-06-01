@@ -1,5 +1,6 @@
 import { spawn, ChildProcessWithoutNullStreams } from "node:child_process";
 import { engine_path, maxInstanceSize } from "../../config.json";
+import { cpus } from "node:os";
 
 type Move = {
     from: string;
@@ -17,6 +18,7 @@ type EngineInstance = {
     newGame: () => void;
     userId: string;
     engineId: string;
+    ws: Bun.ServerWebSocket<unknown> | null;
 };
 
 export const engines = new Map<string, EngineInstance>();
@@ -56,12 +58,15 @@ export function initEngineForUser(userId: string): EngineInstance {
 
     proc.stdout.on("data", (data: Buffer) => {
         const text = data.toString();
+
         const bestMoveMatch = text.match(/bestmove\s([a-h][1-8])([a-h][1-8])([qrbn]?)/);
         if (bestMoveMatch && resolveMove) {
             const [, from, to, promo] = bestMoveMatch;
             resolveMove({ from, to, promotion: promo || "q" });
             resolveMove = null;
-        } 
+        }
+
+        engine.ws && engine.ws.send(JSON.stringify({ "type": "console", text }));
     });
 
     const engine: EngineInstance = {
@@ -81,10 +86,20 @@ export function initEngineForUser(userId: string): EngineInstance {
         },
         userId: userId,
         engineId: Bun.randomUUIDv7("base64"),
+        ws: null
     };
 
     engines.set(userId, engine);
     return engine;
+}
+
+export async function broadcastMetaInfos(engine: EngineInstance) {
+    if (engine && engine.ws) {
+        engine.ws.send(JSON.stringify({ "type": "console", "text": `Currently running sessions size: ${engines.size}` }));
+        engine.ws.send(JSON.stringify({ "type": "console", "text": `Server CPU: ${cpus()[0].model}` }));
+        engine.ws.send(JSON.stringify({ "type": "console", "text": `Your ID: ${engine.userId}` }));
+        engine.ws.send(JSON.stringify({ "type": "console", "text": `Engine: ${engine.engineId}` }));
+    }
 }
 
 export function stopEngineForUser(userId: string) {
