@@ -34,7 +34,7 @@ A lightweight web interface for the Eleanor chess engine, built with Bun, React,
 
 ## 🗒️ Plans
 - ✅ Sounds.
-- 🟨 Log informations screen. ~ testing
+- ✅ Log informations screen. ~ testing
 - Time control.
 - Player number / server load indicator.
 - Benchmarks tab etc.
