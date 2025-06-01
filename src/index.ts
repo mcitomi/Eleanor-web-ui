@@ -172,7 +172,7 @@ const server = serve({
         if (new URL(request.url).pathname == "/console") {
             const success = server.upgrade(request);
             if (success) {
-                return undefined;
+                return;
             }
         }
         return Response.json({ "message": "page not found" }, { status: 404 });
@@ -189,6 +189,9 @@ const server = serve({
 
                 broadcastMetaInfos(engine);
             }
+        },
+        open(ws) {
+            ws.send(JSON.stringify({"type" : "console", "text" : "WS connection opened"}));
         },
     },
 
