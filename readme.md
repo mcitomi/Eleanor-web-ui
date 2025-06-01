@@ -45,3 +45,11 @@ A lightweight web interface for the Eleanor chess engine, built with Bun, React,
 - When the user leaves the page and returns, traces of the last step are lost.
 - Make the chessboard bigger in phone view.
 - "ha kijelölsz egy bábut, sárgával jelezve van, hogy hova tud lépni. Ez nagyszerű, de ha a motor gondolkodása közben jelölsz ki figurát, majd idők közben lép egyet a bot, akkor továbbra is fogod a bábut, de nem jelenik meg a sárga jelölés, hogy hova tudsz lépni"
+
+### 🤖 Version numbering system:
+> MAJOR.MINOR.FEATURE.FIX
+
+- **MAJOR**: An important, far-reaching change or innovation.
+- **MINOR**: Less important, but still significant changes.
+- **FEATURE**: Add a new function or command.
+- **FIX**: Bug fixes, optimization.

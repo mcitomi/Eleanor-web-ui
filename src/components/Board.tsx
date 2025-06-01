@@ -81,21 +81,18 @@ export default function Board() {
     async function resetGame() {
         try {
             localStorage.removeItem("fen");
+            setFen("");
+            setLastSteps({});
+            setHighlightSquares({});
+            setSelected("");
 
             let newGameFen = new Chess().fen();
-
             gameRef.current = new Chess(newGameFen);
-            setFen(newGameFen);
 
             controllerRef.current?.abort("Game reseted");
 
             document.getElementById("board")!.classList.remove("danger");
-
             document.getElementById("thinking")?.style && (document.getElementById("thinking")!.style.visibility = "hidden");
-
-            setLastSteps({});
-            setHighlightSquares({});
-            setSelected("");
 
             const response = await fetch(`${window.location.origin}/api/resetgame`, {
                 method: "post",
@@ -116,6 +113,7 @@ export default function Board() {
                 localStorage.setItem("eid", body.eid);
                 console.log(body.message);
                 setShowOverlay(false);
+                setFen(newGameFen);
             }
         } catch (error) {
             console.log(error);
@@ -312,7 +310,7 @@ export default function Board() {
             }
         } catch (error) {
             console.log(error);
-            
+
             if (selected && !piece || piece && piece[0] !== orientation[0]) {
                 illegalSoundRef.current.currentTime = 0;
                 illegalSoundRef.current.play().catch(() => { });
@@ -352,8 +350,8 @@ export default function Board() {
                         </div>
                     </div>
                 </div>
-                <Button size="sm" variant="light" className="m-3" onClick={() => { resetGame(), setOrientation("white") }}>Reset Game<br/><small>Play on white side</small></Button>
-                <Button size="sm" variant="dark" className="m-3" onClick={() => { resetGame(), setOrientation("black") }}>Reset Game<br/><small>Play on black side</small></Button>
+                <Button size="sm" variant="light" className="m-3" onClick={() => { resetGame(), setOrientation("white") }}>Reset Game<br /><small>Play on white side</small></Button>
+                <Button size="sm" variant="dark" className="m-3" onClick={() => { resetGame(), setOrientation("black") }}>Reset Game<br /><small>Play on black side</small></Button>
             </div>
         </>
     );
